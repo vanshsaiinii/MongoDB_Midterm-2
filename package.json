@@ -1,0 +1,27 @@
+{
+  "name": "mongodb-lab-a1-a3-fullstack",
+  "version": "1.0.0",
+  "description": "Fullstack JavaScript + MongoDB Lab Practical Project covering Scenario A1 (Online Store Inventory Update: shopDB.products) and Scenario A3 (Employee Directory Indexes: companyDB.employees)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "mongodb",
+    "nodejs",
+    "express",
+    "aggregation",
+    "indexes",
+    "explain",
+    "fullstack",
+    "lab-practical"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0"
+  }
+}
