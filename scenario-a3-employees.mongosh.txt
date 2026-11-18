@@ -1,0 +1,47 @@
+// Scenario A3: Employee Directory: Speeding up Searches with Indexes
+// Run with: mongosh < scripts/scenario-a3-employees.mongosh.js
+
+use companyDB;
+db.employees.drop();
+
+db.employees.insertMany([
+  { _id: 1, name: "Anil", dept: "IT", city: "Chennai", salary: 60000, skills: ["MongoDB", "Python"] },
+  { _id: 2, name: "Bhavna", dept: "HR", city: "Mumbai", salary: 45000, skills: ["Excel", "Communication"] },
+  { _id: 3, name: "Charan", dept: "IT", city: "Chennai", salary: 75000, skills: ["Java", "MongoDB"] },
+  { _id: 4, name: "Deepa", dept: "Finance", city: "Pune", salary: 52000, skills: ["Excel", "Tally"] },
+  { _id: 5, name: "Elan", dept: "IT", city: "Bengaluru", salary: 68000, skills: ["Python", "Docker"] },
+  { _id: 6, name: "Farida", dept: "HR", city: "Delhi", salary: 48000, skills: ["Communication", "Recruitment"] },
+  { _id: 7, name: "Gokul", dept: "Finance", city: "Chennai", salary: 58000, skills: ["Tally", "Excel"] },
+  { _id: 8, name: "Hema", dept: "IT", city: "Pune", salary: 82000, skills: ["MongoDB", "Kubernetes"] }
+]);
+
+print("\n--- Task 1: explain('executionStats') without index (COLLSCAN) ---");
+printjson(db.employees.find({ dept: "IT" }).explain("executionStats").executionStats);
+
+print("\n--- Task 2: Single-field index on dept ---");
+printjson(db.employees.createIndex({ dept: 1 }));
+printjson(db.employees.find({ dept: "IT" }).explain("executionStats").executionStats);
+
+print("\n--- Task 3: Compound index { dept: 1, salary: -1 } ---");
+printjson(db.employees.createIndex({ dept: 1, salary: -1 }));
+printjson(db.employees.find({ dept: "IT" }).sort({ salary: -1 }).toArray());
+
+print("\n--- Task 4: Multikey index on skills ---");
+printjson(db.employees.createIndex({ skills: 1 }));
+printjson(db.employees.find({ skills: "MongoDB" }).explain("executionStats").executionStats);
+
+print("\n--- Task 5: Hide and unhide skills_1 ---");
+printjson(db.employees.hideIndex("skills_1"));
+printjson(db.employees.find({ skills: "MongoDB" }).explain("executionStats").executionStats);
+printjson(db.employees.unhideIndex("skills_1"));
+
+print("\n--- Task 6: Unique index error on city, then unique index on name ---");
+try {
+  db.employees.createIndex({ city: 1 }, { unique: true });
+} catch (err) {
+  print(err.name + ": " + err.message);
+}
+printjson(db.employees.createIndex({ name: 1 }, { unique: true }));
+
+print("\n--- Task 7: List all indexes ---");
+printjson(db.employees.getIndexes());

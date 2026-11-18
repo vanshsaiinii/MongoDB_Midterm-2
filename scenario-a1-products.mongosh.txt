@@ -1,0 +1,49 @@
+// Scenario A1: Online Store Inventory Update
+// Run with: mongosh < scripts/scenario-a1-products.mongosh.js
+
+use shopDB;
+db.products.drop();
+
+db.products.insertMany([
+  { _id: 1, name: "Wireless Mouse", category: "Accessories", price: 800, stock: 50, discontinued: false, oldCode: "WM-01" },
+  { _id: 2, name: "Keyboard", category: "Accessories", price: 1500, stock: 30, discontinued: false, oldCode: "KB-02" },
+  { _id: 3, name: "USB Cable", category: "Accessories", price: 200, stock: 100, discontinued: false },
+  { _id: 4, name: "Laptop", category: "Computers", price: 55000, stock: 10, discontinued: false },
+  { _id: 5, name: "Monitor", category: "Computers", price: 12000, stock: 15, discontinued: false },
+  { _id: 6, name: "Old Floppy Drive", category: "Computers", price: 300, stock: 0, discontinued: true },
+  { _id: 7, name: "Dial-up Modem", category: "Computers", price: 500, stock: 0, discontinued: true },
+  { _id: 8, name: "CD Drive", category: "Computers", price: 400, stock: 0, discontinued: true }
+]);
+
+print("\n--- Task 1: Change Keyboard price to 1400 ($set) ---");
+printjson(db.products.updateOne({ name: "Keyboard" }, { $set: { price: 1400 } }));
+
+print("\n--- Task 2: Add 25 to Wireless Mouse stock ($inc) ---");
+printjson(db.products.updateOne({ name: "Wireless Mouse" }, { $inc: { stock: 25 } }));
+
+print("\n--- Task 3: Remove obsolete field oldCode ($unset) ---");
+printjson(db.products.updateMany({}, { $unset: { oldCode: "" } }));
+
+print("\n--- Task 4: Replace _id: 3 document ---");
+printjson(
+  db.products.replaceOne(
+    { _id: 3 },
+    { name: "USB-C Cable", category: "Accessories", price: 350, stock: 100, discontinued: false }
+  )
+);
+
+print("\n--- Task 5: Delete Old Floppy Drive ---");
+printjson(db.products.deleteOne({ name: "Old Floppy Drive" }));
+
+print("\n--- Task 6: Delete all remaining discontinued: true ---");
+printjson(db.products.deleteMany({ discontinued: true }));
+
+print("\n--- Task 7: Aggregation (price >= 500, group by category, sort totalStock desc) ---");
+printjson(
+  db.products.aggregate([
+    { $match: { price: { $gte: 500 } } },
+    { $group: { _id: "$category", totalStock: { $sum: "$stock" }, avgPrice: { $avg: "$price" } } },
+    { $project: { _id: 0, category: "$_id", totalStock: 1, avgPrice: 1 } },
+    { $sort: { totalStock: -1 } }
+  ]).toArray()
+);
